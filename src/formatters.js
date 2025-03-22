@@ -4,6 +4,11 @@
  * @returns {Array} - 포맷팅된 이슈 데이터
  */
 function formatIssues(issues) {
+  if (!Array.isArray(issues)) {
+    console.warn("이슈 데이터가 올바른 형식이 아닙니다:", issues);
+    return [];
+  }
+
   return issues.map((issue) => ({
     number: issue.number,
     title: issue.title,
@@ -23,6 +28,11 @@ function formatIssues(issues) {
  * @returns {Array} - 포맷팅된 PR 데이터
  */
 function formatPRs(prs) {
+  if (!Array.isArray(prs)) {
+    console.warn("PR 데이터가 올바른 형식이 아닙니다:", prs);
+    return [];
+  }
+
   return prs.map((pr) => ({
     number: pr.number,
     title: pr.title,
@@ -46,6 +56,11 @@ function formatPRs(prs) {
  * @returns {Array} - 포맷팅된 커밋 데이터
  */
 function formatCommits(commits) {
+  if (!Array.isArray(commits)) {
+    console.warn("커밋 데이터가 올바른 형식이 아닙니다:", commits);
+    return [];
+  }
+
   return commits.map((commit) => ({
     sha: commit.sha,
     short_sha: commit.sha.substring(0, 7),
@@ -66,6 +81,11 @@ function formatCommits(commits) {
  * @returns {Object|Array} - 포맷팅된 기여자 통계
  */
 function formatContributorStats(stats, username = null) {
+  if (!stats || !Array.isArray(stats)) {
+    console.warn("기여자 통계 데이터가 올바른 형식이 아닙니다:", stats);
+    return username ? null : [];
+  }
+
   const formattedStats = stats.map((stat) => ({
     username: stat.author.login,
     total_commits: stat.total,
