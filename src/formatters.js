@@ -127,80 +127,30 @@ function formatComments(comments) {
  * @returns {Object} - 포트폴리오용 요약 데이터
  */
 function createPortfolioSummary(data) {
-  const { issues, prs, commits, contributorStats } = data;
+  if (!data) {
+    console.warn("포트폴리오 데이터가 없습니다.");
+    return null;
+  }
 
-  // 작업 기간 계산
-  const allDates = [
-    ...issues.map((i) => new Date(i.created_at)),
-    ...prs.map((p) => new Date(p.created_at)),
-    ...commits.map((c) => new Date(c.date)),
-  ].sort((a, b) => a - b);
-
-  const firstActivity = allDates[0];
-  const lastActivity = allDates[allDates.length - 1];
-
-  // 주요 PR 추출 (코드 변경이 많은 순)
-  const significantPRs = [...prs]
-    .sort((a, b) => b.additions + b.deletions - (a.additions + a.deletions))
-    .slice(0, 5);
-
-  // 커밋 메시지 분석 (어떤 유형의 작업을 했는지)
-  const commitTypes = commits.reduce(
-    (acc, commit) => {
-      const message = commit.message.toLowerCase();
-      if (message.includes("fix") || message.includes("bug")) acc.bug_fixes++;
-      else if (message.includes("feat") || message.includes("add"))
-        acc.features++;
-      else if (message.includes("refactor")) acc.refactoring++;
-      else if (message.includes("test")) acc.testing++;
-      else if (message.includes("docs") || message.includes("document"))
-        acc.documentation++;
-      else acc.other++;
-      return acc;
+  const summary = {
+    issues: {
+      total: data.issues?.length || 0,
+      open: data.issues?.filter((i) => i.state === "open").length || 0,
+      closed: data.issues?.filter((i) => i.state === "closed").length || 0,
     },
-    {
-      bug_fixes: 0,
-      features: 0,
-      refactoring: 0,
-      testing: 0,
-      documentation: 0,
-      other: 0,
-    }
-  );
-
-  return {
-    summary: {
-      project_duration: {
-        start_date: firstActivity.toISOString().substring(0, 10),
-        end_date: lastActivity.toISOString().substring(0, 10),
-        duration_days: Math.ceil(
-          (lastActivity - firstActivity) / (1000 * 60 * 60 * 24)
-        ),
-      },
-      contribution_stats: {
-        total_issues: issues.length,
-        total_prs: prs.length,
-        total_commits: commits.length,
-        lines_added: prs.reduce((sum, pr) => sum + (pr.additions || 0), 0),
-        lines_deleted: prs.reduce((sum, pr) => sum + (pr.deletions || 0), 0),
-      },
-      work_breakdown: commitTypes,
+    pull_requests: {
+      total: data.prs?.length || 0,
+      open: data.prs?.filter((pr) => pr.state === "open").length || 0,
+      closed: data.prs?.filter((pr) => pr.state === "closed").length || 0,
+      merged: data.prs?.filter((pr) => pr.merged_at).length || 0,
     },
-    significant_contributions: {
-      top_prs: significantPRs.map((pr) => ({
-        number: pr.number,
-        title: pr.title,
-        url: pr.url,
-        changes: (pr.additions || 0) + (pr.deletions || 0),
-      })),
-      active_periods: contributorStats
-        ? contributorStats.weekly_contributions
-            .filter((week) => week.commits > 0)
-            .sort((a, b) => b.commits - a.commits)
-            .slice(0, 3)
-        : [],
+    commits: {
+      total: data.commits?.length || 0,
     },
+    contributor_stats: data.contributorStats || null,
   };
+
+  return summary;
 }
 
 module.exports = {

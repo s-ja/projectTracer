@@ -2,6 +2,7 @@
 
 const { program } = require("commander");
 const path = require("path");
+const fs = require("fs");
 require("dotenv").config();
 
 const api = require("./api");
@@ -190,19 +191,61 @@ async function main() {
     // 포트폴리오 데이터 생성
     if (options.portfolio) {
       console.log("포트폴리오 데이터 생성 중...");
-      const portfolioData = formatters.createPortfolioSummary(data);
-      exporters.saveAsJSON(portfolioData, "portfolio_data", options.dir);
-      exporters.generatePortfolioMarkdown(
-        portfolioData,
-        {
-          repo_owner: options.owner,
-          repo_name: options.repo,
-          user_name: options.user,
-        },
-        "portfolio",
-        options.dir
-      );
-      console.log("포트폴리오 데이터가 생성되었습니다.");
+      try {
+        // 파일에서 데이터 읽어오기
+        const issues = JSON.parse(
+          await fs.promises.readFile(
+            path.join(options.dir, "issues.json"),
+            "utf8"
+          )
+        );
+        const prs = JSON.parse(
+          await fs.promises.readFile(
+            path.join(options.dir, "pull_requests.json"),
+            "utf8"
+          )
+        );
+        const commits = JSON.parse(
+          await fs.promises.readFile(
+            path.join(options.dir, "commits.json"),
+            "utf8"
+          )
+        );
+        let contributorStats = null;
+        try {
+          contributorStats = JSON.parse(
+            await fs.promises.readFile(
+              path.join(options.dir, "contributor_stats.json"),
+              "utf8"
+            )
+          );
+        } catch (error) {
+          console.warn("기여자 통계 파일을 읽을 수 없습니다:", error.message);
+        }
+
+        const fileData = {
+          issues,
+          prs,
+          commits,
+          contributorStats,
+        };
+
+        const portfolioData = formatters.createPortfolioSummary(fileData);
+        console.log("포트폴리오 데이터가 생성되었습니다.");
+
+        // 포트폴리오 데이터 저장
+        await exporters.saveAsJSON(
+          portfolioData,
+          "portfolio_data",
+          options.dir
+        );
+
+        // 포트폴리오 마크다운 생성
+        await exporters.generatePortfolioMarkdown(portfolioData, options.dir);
+      } catch (error) {
+        console.error("포트폴리오 데이터 생성 실패:", error.message);
+        process.exit(1);
+      }
     }
 
     console.log("모든 작업이 완료되었습니다.");
