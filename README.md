@@ -1,6 +1,6 @@
 # GitHub Data Explorer
 
-GitHub API를 사용하여 저장소 데이터를 수집하고 분석하는 도구입니다.
+GitHub API를 사용한 개발 프로젝트 저장소 데이터 수집 및 분석을 위한 프로그램.
 
 ## 기능
 
@@ -14,7 +14,7 @@ GitHub API를 사용하여 저장소 데이터를 수집하고 분석하는 도�
 
 ```bash
 git clone [repository-url]
-cd github-data-explorer
+cd projectTracer
 ```
 
 2. 의존성을 설치합니다:
@@ -108,7 +108,3 @@ node src/index.js -o "다른소유자" -r "다른저장소" -u "다른사용자"
 1. `output` 디렉토리는 `.gitignore`에 포함되어 있어 Git에 업로드되지 않습니다.
 2. GitHub API 토큰은 반드시 `.env` 파일에 안전하게 보관해야 합니다.
 3. API 호출 제한에 주의하세요. GitHub API는 시간당 요청 제한이 있습니다.
-
-## 라이선스
-
-ISC
